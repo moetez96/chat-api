@@ -1,5 +1,9 @@
 package com.example.chatapi.model;
 
 public enum MessageType {
-    CHAT, JOIN, LEAVE
+    CHAT,
+    UNSEEN,
+    FRIEND_ONLINE,
+    FRIEND_OFFLINE,
+    MESSAGE_DELIVERY_UPDATE
 }
