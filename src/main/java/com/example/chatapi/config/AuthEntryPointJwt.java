@@ -17,6 +17,6 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
             HttpServletResponse response,
             org.springframework.security.core.AuthenticationException authException)
             throws IOException {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized (peepee)");
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized");
     }
 }

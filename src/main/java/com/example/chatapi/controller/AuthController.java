@@ -31,21 +31,28 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
+    private final PasswordEncoder encoder;
 
-    @Autowired
-    private PasswordEncoder encoder;
+    private final JWTUtils jwtUtils;
 
-    @Autowired
-    private JWTUtils jwtUtils;
+    public AuthController(
+            AuthenticationManager authenticationManager,
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder,
+            JWTUtils jwtUtils) {
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.encoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
+    }
 
 
     @PostMapping("/login")
