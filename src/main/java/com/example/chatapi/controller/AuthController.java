@@ -7,8 +7,10 @@ import com.example.chatapi.model.JwtResponse;
 import com.example.chatapi.model.LoginRequest;
 import com.example.chatapi.model.MessageResponse;
 import com.example.chatapi.model.SignupRequest;
-import com.example.chatapi.repository.RoleRepository;
-import com.example.chatapi.repository.UserRepository;
+import com.example.chatapi.service.IRoleService;
+import com.example.chatapi.service.IUserService;
+import com.example.chatapi.service.impl.RoleService;
+import com.example.chatapi.service.impl.UserService;
 import com.example.chatapi.utils.JWTUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,10 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -33,23 +32,24 @@ import java.util.UUID;
 public class AuthController {
     private final AuthenticationManager authenticationManager;
 
-    private final UserRepository userRepository;
+    private final IUserService userService;
 
-    private final RoleRepository roleRepository;
+    private final IRoleService roleService;
 
     private final PasswordEncoder encoder;
 
     private final JWTUtils jwtUtils;
 
+    @Autowired
     public AuthController(
             AuthenticationManager authenticationManager,
-            UserRepository userRepository,
-            RoleRepository roleRepository,
+            UserService userService,
+            RoleService roleService,
             PasswordEncoder passwordEncoder,
             JWTUtils jwtUtils) {
         this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
+        this.userService = userService;
+        this.roleService = roleService;
         this.encoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
     }
@@ -58,6 +58,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(
             @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+
+        Optional<User> user = userService.getUserByUsername(loginRequest.getUsername());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Error: User with this Username does not exists"));
+        }
+
+        if (!encoder.matches(loginRequest.getPassword(), user.get().getPassword())) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Error: Wrong password"));
+        }
+
 
         Authentication authentication =
                 authenticationManager.authenticate(
@@ -86,12 +99,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+        if (userService.userExistsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Error: Username is already taken!"));
         }
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+        if (userService.userExistsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
@@ -109,8 +122,8 @@ public class AuthController {
 
         if (strRoles == null) {
             Role userRole =
-                    roleRepository
-                            .findByName(Role.ERole.USER)
+                    roleService
+                            .getByName(Role.ERole.USER)
                             .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             roles.add(userRole);
         } else {
@@ -119,24 +132,21 @@ public class AuthController {
                         switch (role) {
                             case "ADMIN":
                                 Role adminRole =
-                                        roleRepository
-                                                .findByName(Role.ERole.ADMIN)
+                                        roleService.getByName(Role.ERole.ADMIN)
                                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                                 roles.add(adminRole);
 
                                 break;
                             case "MODERATOR":
                                 Role modRole =
-                                        roleRepository
-                                                .findByName(Role.ERole.MODERATOR)
+                                        roleService.getByName(Role.ERole.MODERATOR)
                                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                                 roles.add(modRole);
 
                                 break;
                             default:
                                 Role userRole =
-                                        roleRepository
-                                                .findByName(Role.ERole.USER)
+                                        roleService.getByName(Role.ERole.USER)
                                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                                 roles.add(userRole);
                         }
@@ -144,7 +154,7 @@ public class AuthController {
         }
 
         user.setRoles(roles);
-        userRepository.save(user);
+        userService.addUser(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }

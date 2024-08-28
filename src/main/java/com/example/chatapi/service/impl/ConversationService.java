@@ -1,4 +1,4 @@
-package com.example.chatapi.service;
+package com.example.chatapi.service.impl;
 
 import com.example.chatapi.config.UserDetailsImpl;
 import com.example.chatapi.entity.Conversation;
@@ -8,6 +8,8 @@ import com.example.chatapi.mapper.ChatMessageMapper;
 import com.example.chatapi.model.*;
 import com.example.chatapi.repository.ConversationRepository;
 import com.example.chatapi.repository.UserRepository;
+import com.example.chatapi.service.IConversationService;
+import com.example.chatapi.service.IOnlineOfflineService;
 import com.example.chatapi.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -18,12 +20,12 @@ import java.util.*;
 
 @Service
 @Slf4j
-public class ConversationService {
+public class ConversationService implements IConversationService {
     private final UserRepository userRepository;
     private final SecurityUtils securityUtils;
     private final ChatMessageMapper chatMessageMapper;
     private final ConversationRepository conversationRepository;
-    private final OnlineOfflineService onlineOfflineService;
+    private final IOnlineOfflineService onlineOfflineService;
     private final SimpMessageSendingOperations simpMessageSendingOperations;
 
     public ConversationService(

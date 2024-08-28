@@ -1,10 +1,11 @@
-package com.example.chatapi.service;
+package com.example.chatapi.service.impl;
 
 import com.example.chatapi.config.UserDetailsImpl;
 import com.example.chatapi.entity.Conversation;
 import com.example.chatapi.entity.User;
 import com.example.chatapi.model.*;
 import com.example.chatapi.repository.UserRepository;
+import com.example.chatapi.service.IOnlineOfflineService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 @Slf4j
 @Service
-public class OnlineOfflineService {
+public class OnlineOfflineService implements IOnlineOfflineService {
     private final Set<UUID> onlineUsers;
     private final Map<UUID, Set<String>> userSubscribed;
     private final UserRepository userRepository;

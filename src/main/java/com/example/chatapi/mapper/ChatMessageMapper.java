@@ -5,7 +5,9 @@ import com.example.chatapi.entity.Conversation;
 import com.example.chatapi.entity.User;
 import com.example.chatapi.model.ChatMessage;
 import com.example.chatapi.model.MessageType;
-import com.example.chatapi.repository.UserRepository;
+import com.example.chatapi.service.IUserService;
+import com.example.chatapi.service.impl.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,10 +18,11 @@ import java.util.stream.Collectors;
 @Component
 public class ChatMessageMapper {
 
-    private final UserRepository userRepository;
+    private final IUserService userService;
 
-    public ChatMessageMapper(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    @Autowired
+    public ChatMessageMapper(UserService userService) {
+        this.userService = userService;
     }
 
     public List<ChatMessage> toChatMessages(
@@ -29,7 +32,7 @@ public class ChatMessageMapper {
         List<UUID> fromUsersIds =
                 conversationEntities.stream().map(Conversation::getFromUser).toList();
         Map<UUID, String> fromUserIdsToUsername =
-                userRepository.findAllById(fromUsersIds).stream()
+                userService.getAllByIds(fromUsersIds).stream()
                         .collect(Collectors.toMap(User::getId, User::getUsername));
 
         return conversationEntities.stream()

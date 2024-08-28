@@ -3,7 +3,7 @@ package com.example.chatapi.controller;
 import com.example.chatapi.model.ChatMessage;
 import com.example.chatapi.model.UnseenMessageCountResponse;
 import com.example.chatapi.model.UserConnection;
-import com.example.chatapi.service.ConversationService;
+import com.example.chatapi.service.impl.ConversationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

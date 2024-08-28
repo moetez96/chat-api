@@ -1,10 +1,12 @@
-package com.example.chatapi.service;
+package com.example.chatapi.service.impl;
 
 import com.example.chatapi.config.UserDetailsImpl;
 import com.example.chatapi.entity.Conversation;
 import com.example.chatapi.model.ChatMessage;
 import com.example.chatapi.model.MessageDeliveryStatusEnum;
 import com.example.chatapi.repository.ConversationRepository;
+import com.example.chatapi.service.IChatService;
+import com.example.chatapi.service.IOnlineOfflineService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -16,13 +18,13 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class ChatService {
+public class ChatService implements IChatService {
 
     private final SimpMessageSendingOperations simpMessageSendingOperations;
 
     private final ConversationRepository conversationRepository;
 
-    private final OnlineOfflineService onlineOfflineService;
+    private final IOnlineOfflineService onlineOfflineService;
 
     @Autowired
     public ChatService(
