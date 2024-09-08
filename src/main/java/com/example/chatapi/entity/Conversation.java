@@ -1,13 +1,20 @@
 package com.example.chatapi.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.sql.Timestamp;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.security.Timestamp;
-import java.util.UUID;
 
 @Entity
 @Table(name = "conversation")
@@ -17,7 +24,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
-public class Conversation {
+public class Conversation{
     @Id
     @Column(name = "id", nullable = false, columnDefinition = "uuid")
     private UUID id;

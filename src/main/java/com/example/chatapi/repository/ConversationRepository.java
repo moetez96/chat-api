@@ -18,4 +18,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
 
     @Query(value = "select * from conversation where to_user = :toUser and delivery_status in ('NOT_DELIVERED', 'DELIVERED')", nativeQuery = true)
     List<Conversation> findUnseenMessagesCount(@Param("toUser") UUID toUser);
+
+    @Query(value = "select * from conversation where conv_id = :convId", nativeQuery = true)
+    List<Conversation> findConversationMessages(@Param("convId") String convId);
 }

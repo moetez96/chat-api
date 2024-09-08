@@ -22,7 +22,7 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    @Value("${frontend.caller.host:http://localhost:3000}")
+    @Value("${frontend.caller.host:http://localhost:4200}")
     private String frontendCallerHost;
 
     private final WebSocketTokenFilter webSocketTokenFilter;
@@ -42,7 +42,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry
                 .addEndpoint("/ws")
                 .setHandshakeHandler(new DefaultHandshakeHandler(upgradeStrategy))
-                .setAllowedOrigins(frontendCallerHost);
+                .setAllowedOrigins("*");
     }
 
     @Override

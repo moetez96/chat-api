@@ -14,4 +14,6 @@ public interface IConversationService {
 
     List<ChatMessage> setReadMessages(List<ChatMessage> chatMessages);
 
+    List<ChatMessage> getConversationMessages(String convId);
+
 }

@@ -22,8 +22,7 @@ import java.util.Date;
 @Component
 public class JWTUtils {
 
-    @Value(
-            "${bezkoder.app.jwtSecret:123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123}")
+    @Value("${bezkoder.app.jwtSecret:123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123}")
     private String jwtSecret;
 
     @Value("${bezkoder.app.jwtExpirationMs:604800000}")
@@ -33,6 +32,7 @@ public class JWTUtils {
 
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
         return Jwts.builder()
+                .setId(userPrincipal.getId().toString())
                 .setSubject((userPrincipal.getUsername()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))

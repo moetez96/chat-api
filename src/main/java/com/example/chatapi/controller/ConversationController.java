@@ -41,4 +41,9 @@ public class ConversationController {
     public List<ChatMessage> setReadMessages(@RequestBody List<ChatMessage> chatMessages) {
         return conversationService.setReadMessages(chatMessages);
     }
+
+    @GetMapping("/getConversationMessages/{convId}")
+    public List<ChatMessage> getConversationMessages(@PathVariable("convId") String convId) {
+        return conversationService.getConversationMessages(convId);
+    }
 }

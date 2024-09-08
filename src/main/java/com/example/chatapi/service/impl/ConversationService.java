@@ -130,6 +130,18 @@ public class ConversationService implements IConversationService {
         return chatMessageMapper.toChatMessages(saved, securityUtils.getUser(), MessageType.CHAT);
     }
 
+    public List<ChatMessage> getConversationMessages(String convId) {
+        List<ChatMessage> result = new ArrayList<>();
+        UserDetailsImpl userDetails = securityUtils.getUser();
+        List<Conversation> unseenMessages =
+                conversationRepository.findConversationMessages(convId);
+
+        if (!CollectionUtils.isEmpty(unseenMessages)) {
+            result = chatMessageMapper.toChatMessages(unseenMessages, userDetails, MessageType.UNSEEN);
+        }
+        return result;
+    }
+
     public static String getConvId(User user1, User user2) {
         String id1 = user1.getId().toString();
         String id2 = user2.getId().toString();
