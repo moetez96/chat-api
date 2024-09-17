@@ -61,7 +61,7 @@ public class ChatService implements IChatService {
                     "{} is not online. Content saved in unseen messages", chatMessage.getReceiverUsername());
             conversationBuilder.deliveryStatus(MessageDeliveryStatusEnum.NOT_DELIVERED.toString());
             chatMessage.setMessageDeliveryStatusEnum(MessageDeliveryStatusEnum.NOT_DELIVERED);
-
+            simpMessageSendingOperations.convertAndSend("/topic/" + fromUserId.toString(), chatMessage);
         } else if (!isTargetSubscribed) {
             log.info(
                     "{} is online but not subscribed. sending to their private subscription",
@@ -69,10 +69,13 @@ public class ChatService implements IChatService {
             conversationBuilder.deliveryStatus(MessageDeliveryStatusEnum.DELIVERED.toString());
             chatMessage.setMessageDeliveryStatusEnum(MessageDeliveryStatusEnum.DELIVERED);
             simpMessageSendingOperations.convertAndSend("/topic/" + toUserId.toString(), chatMessage);
+            simpMessageSendingOperations.convertAndSend("/topic/" + fromUserId.toString(), chatMessage);
 
         } else {
             conversationBuilder.deliveryStatus(MessageDeliveryStatusEnum.SEEN.toString());
             chatMessage.setMessageDeliveryStatusEnum(MessageDeliveryStatusEnum.SEEN);
+            simpMessageSendingOperations.convertAndSend("/topic/" + toUserId.toString(), chatMessage);
+            simpMessageSendingOperations.convertAndSend("/topic/" + fromUserId.toString(), chatMessage);
         }
         conversationRepository.save(conversationBuilder.build());
         simpMessageSendingOperations.convertAndSend("/topic/" + conversationId, chatMessage);
