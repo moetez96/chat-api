@@ -2,6 +2,8 @@ package com.example.chatapi.model;
 
 import lombok.*;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,4 +28,6 @@ public class ChatMessage {
     private MessageDeliveryStatusEnum messageDeliveryStatusEnum;
 
     private List<MessageDeliveryStatusUpdate> messageDeliveryStatusUpdates;
+
+    private Timestamp time;
 }

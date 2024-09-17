@@ -56,6 +56,7 @@ public class ChatMessageMapper {
                 .senderId(e.getFromUser())
                 .senderUsername(fromUserIdsToUsername.get(e.getFromUser()))
                 .messageDeliveryStatusEnum(messageDeliveryStatusEnum)
+                .time(e.getTime())
                 .build();
     }
 }

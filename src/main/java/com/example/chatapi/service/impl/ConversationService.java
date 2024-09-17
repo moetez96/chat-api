@@ -106,6 +106,7 @@ public class ConversationService implements IConversationService {
                         .receiverUsername(securityUtils.getUser().getUsername())
                         .senderId(conversation.getFromUser())
                         .messageDeliveryStatusEnum(MessageDeliveryStatusEnum.valueOf(conversation.getDeliveryStatus()))
+                        .time(conversation.getTime())
                         .build()
         ).orElse(null);
     }

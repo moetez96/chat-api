@@ -140,6 +140,7 @@ public class OnlineOfflineService implements IOnlineOfflineService {
                             .messageDeliveryStatusUpdates(messageDeliveryStatusUpdates)
                             .messageType(MessageType.MESSAGE_DELIVERY_UPDATE)
                             .content(entity.getContent())
+                            .time(entity.getTime())
                             .build());
         }
     }
