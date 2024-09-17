@@ -10,7 +10,7 @@ public interface IConversationService {
 
     List<UnseenMessageCountResponse> getUnseenMessageCount();
 
-    List<ChatMessage> getUnseenMessages(UUID fromUserId);
+    ChatMessage getLastMessage(String convId);
 
     List<ChatMessage> setReadMessages(List<ChatMessage> chatMessages);
 

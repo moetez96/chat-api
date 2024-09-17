@@ -95,20 +95,21 @@ public class ConversationService implements IConversationService {
         return result;
     }
 
-    public List<ChatMessage> getUnseenMessages(UUID fromUserId) {
-        List<ChatMessage> result = new ArrayList<>();
-        UserDetailsImpl userDetails = securityUtils.getUser();
-        List<Conversation> unseenMessages =
-                conversationRepository.findUnseenMessages(userDetails.getId(), fromUserId);
+    public ChatMessage getLastMessage(String convId) {
+        Optional<Conversation> optionalConversation = conversationRepository.findLastMessage(convId);
 
-        if (!CollectionUtils.isEmpty(unseenMessages)) {
-            log.info(
-                    "there are some unseen messages for {} from {}", userDetails.getUsername(), fromUserId);
-            updateMessageDelivery(fromUserId, unseenMessages, MessageDeliveryStatusEnum.SEEN);
-            result = chatMessageMapper.toChatMessages(unseenMessages, userDetails, MessageType.UNSEEN);
-        }
-        return result;
+        return optionalConversation.map(conversation ->
+                ChatMessage.builder()
+                        .id(conversation.getId())
+                        .content(conversation.getContent())
+                        .receiverId(conversation.getToUser())
+                        .receiverUsername(securityUtils.getUser().getUsername())
+                        .senderId(conversation.getFromUser())
+                        .messageDeliveryStatusEnum(MessageDeliveryStatusEnum.valueOf(conversation.getDeliveryStatus()))
+                        .build()
+        ).orElse(null);
     }
+
 
     private void updateMessageDelivery(
             UUID user,
@@ -116,6 +117,14 @@ public class ConversationService implements IConversationService {
             MessageDeliveryStatusEnum messageDeliveryStatusEnum) {
         entities.forEach(e -> e.setDeliveryStatus(messageDeliveryStatusEnum.toString()));
         onlineOfflineService.notifySender(user, entities, messageDeliveryStatusEnum);
+        conversationRepository.saveAll(entities);
+    }
+
+    private void updateMessageDeliveryToUsers(
+            String convId,
+            List<Conversation> entities) {
+        entities.forEach(e -> e.setDeliveryStatus(MessageDeliveryStatusEnum.SEEN.toString()));
+        onlineOfflineService.notifyUsers(convId, entities, MessageDeliveryStatusEnum.SEEN);
         conversationRepository.saveAll(entities);
     }
 
@@ -127,6 +136,13 @@ public class ConversationService implements IConversationService {
                 message -> message.setDeliveryStatus(MessageDeliveryStatusEnum.SEEN.toString()));
         List<Conversation> saved = conversationRepository.saveAll(conversationEntities);
 
+        saved.stream().findFirst().ifPresent(conversation -> {
+            String convId = conversation.getConvId();
+            if (convId != null) {
+                updateMessageDeliveryToUsers(convId, saved);
+            }
+        });
+
         return chatMessageMapper.toChatMessages(saved, securityUtils.getUser(), MessageType.CHAT);
     }
 
@@ -137,7 +153,7 @@ public class ConversationService implements IConversationService {
                 conversationRepository.findConversationMessages(convId);
 
         if (!CollectionUtils.isEmpty(unseenMessages)) {
-            result = chatMessageMapper.toChatMessages(unseenMessages, userDetails, MessageType.UNSEEN);
+            result = chatMessageMapper.toChatMessages(unseenMessages, userDetails, MessageType.CHAT);
         }
         return result;
     }

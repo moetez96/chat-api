@@ -32,9 +32,9 @@ public class ConversationController {
         return conversationService.getUnseenMessageCount();
     }
 
-    @GetMapping("/unseenMessages/{fromUserId}")
-    public List<ChatMessage> getUnseenMessages(@PathVariable("fromUserId") UUID fromUserId) {
-        return conversationService.getUnseenMessages(fromUserId);
+    @GetMapping("/getLastMessage/{convId}")
+    public ChatMessage getLastMessage(@PathVariable("convId") String convId) {
+        return conversationService.getLastMessage(convId);
     }
 
     @PutMapping("/setReadMessages")

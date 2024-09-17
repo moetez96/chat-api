@@ -136,10 +136,24 @@ public class OnlineOfflineService implements IOnlineOfflineService {
                     "/topic/" + senderId,
                     ChatMessage.builder()
                             .id(entity.getId())
+                            .receiverId(senderId)
                             .messageDeliveryStatusUpdates(messageDeliveryStatusUpdates)
                             .messageType(MessageType.MESSAGE_DELIVERY_UPDATE)
                             .content(entity.getContent())
                             .build());
         }
+    }
+
+    public void notifyUsers(
+            String convId,
+            List<Conversation> entities,
+            MessageDeliveryStatusEnum messageDeliveryStatusEnum) {
+
+        ChatMessage chatMessage = ChatMessage.builder()
+                .messageType(MessageType.MESSAGE_DELIVERY_UPDATE)
+                .messageDeliveryStatusEnum(MessageDeliveryStatusEnum.SEEN)
+                .build();
+
+        simpMessageSendingOperations.convertAndSend("/topic/" + convId, chatMessage);
     }
 }

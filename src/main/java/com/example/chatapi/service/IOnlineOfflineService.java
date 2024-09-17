@@ -26,4 +26,7 @@ public interface IOnlineOfflineService {
 
     void notifySender(UUID senderId, List<Conversation> entities,
                       MessageDeliveryStatusEnum messageDeliveryStatusEnum);
+
+    void notifyUsers(String convId, List<Conversation> entities,
+                      MessageDeliveryStatusEnum messageDeliveryStatusEnum);
 }

@@ -4,6 +4,7 @@ import com.example.chatapi.config.UserDetailsImpl;
 import com.example.chatapi.entity.Conversation;
 import com.example.chatapi.entity.User;
 import com.example.chatapi.model.ChatMessage;
+import com.example.chatapi.model.MessageDeliveryStatusEnum;
 import com.example.chatapi.model.MessageType;
 import com.example.chatapi.service.IUserService;
 import com.example.chatapi.service.impl.UserService;
@@ -36,15 +37,16 @@ public class ChatMessageMapper {
                         .collect(Collectors.toMap(User::getId, User::getUsername));
 
         return conversationEntities.stream()
-                .map(e -> toChatMessage(e, userDetails, fromUserIdsToUsername, messageType))
+                .map(e -> toChatMessage(e, userDetails, fromUserIdsToUsername, messageType, MessageDeliveryStatusEnum.valueOf(e.getDeliveryStatus())))
                 .toList();
     }
 
-    private static ChatMessage toChatMessage(
+    public ChatMessage toChatMessage(
             Conversation e,
             UserDetailsImpl userDetails,
             Map<UUID, String> fromUserIdsToUsername,
-            MessageType messageType) {
+            MessageType messageType,
+            MessageDeliveryStatusEnum messageDeliveryStatusEnum) {
         return ChatMessage.builder()
                 .id(e.getId())
                 .messageType(messageType)
@@ -53,6 +55,7 @@ public class ChatMessageMapper {
                 .receiverUsername(userDetails.getUsername())
                 .senderId(e.getFromUser())
                 .senderUsername(fromUserIdsToUsername.get(e.getFromUser()))
+                .messageDeliveryStatusEnum(messageDeliveryStatusEnum)
                 .build();
     }
 }
