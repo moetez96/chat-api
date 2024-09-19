@@ -22,11 +22,6 @@ public class ConversationController {
         this.conversationService = conversationService;
     }
 
-    @GetMapping("/friends")
-    public List<UserConnection> getUserFriends() {
-        return conversationService.getUserFriends();
-    }
-
     @GetMapping("/unseenMessages")
     public List<UnseenMessageCountResponse> getUnseenMessageCount() {
         return conversationService.getUnseenMessageCount();

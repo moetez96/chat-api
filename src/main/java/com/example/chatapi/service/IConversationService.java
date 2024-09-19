@@ -6,8 +6,6 @@ import java.util.*;
 
 public interface IConversationService {
 
-    List<UserConnection> getUserFriends();
-
     List<UnseenMessageCountResponse> getUnseenMessageCount();
 
     ChatMessage getLastMessage(String convId);

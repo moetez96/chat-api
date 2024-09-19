@@ -21,7 +21,6 @@ import java.util.*;
 @Service
 @Slf4j
 public class ConversationService implements IConversationService {
-    private final UserRepository userRepository;
     private final SecurityUtils securityUtils;
     private final ChatMessageMapper chatMessageMapper;
     private final ConversationRepository conversationRepository;
@@ -29,42 +28,16 @@ public class ConversationService implements IConversationService {
     private final SimpMessageSendingOperations simpMessageSendingOperations;
 
     public ConversationService(
-            UserRepository userRepository,
             SecurityUtils securityUtils,
             ChatMessageMapper chatMessageMapper,
             ConversationRepository conversationRepository,
             OnlineOfflineService onlineOfflineService,
             SimpMessageSendingOperations simpMessageSendingOperations) {
-        this.userRepository = userRepository;
         this.securityUtils = securityUtils;
         this.chatMessageMapper = chatMessageMapper;
         this.conversationRepository = conversationRepository;
         this.onlineOfflineService = onlineOfflineService;
         this.simpMessageSendingOperations = simpMessageSendingOperations;
-    }
-
-    public List<UserConnection> getUserFriends() {
-        UserDetailsImpl userDetails = securityUtils.getUser();
-        String username = userDetails.getUsername();
-        List<User> users = userRepository.findAll();
-        User thisUser =
-                users.stream()
-                        .filter(user -> user.getUsername().equals(username))
-                        .findFirst()
-                        .orElseThrow(EntityException::new);
-
-        return users.stream()
-                .filter(user -> !user.getUsername().equals(username))
-                .map(
-                        user ->
-                                UserConnection.builder()
-                                        .connectionId(user.getId())
-                                        .connectionUsername(user.getUsername())
-                                        .convId(getConvId(user, thisUser))
-                                        .unSeen(0)
-                                        .isOnline(onlineOfflineService.isUserOnline(user.getId()))
-                                        .build())
-                .toList();
     }
 
     public List<UnseenMessageCountResponse> getUnseenMessageCount() {
@@ -159,10 +132,4 @@ public class ConversationService implements IConversationService {
         return result;
     }
 
-    public static String getConvId(User user1, User user2) {
-        String id1 = user1.getId().toString();
-        String id2 = user2.getId().toString();
-
-        return id1.compareTo(id2) > 0 ? id2 + "_" + id1 : id1 + "_" + id2;
-    }
 }
