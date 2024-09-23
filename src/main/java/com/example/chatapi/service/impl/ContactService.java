@@ -7,6 +7,7 @@ import com.example.chatapi.model.UserConnection;
 import com.example.chatapi.repository.UserRepository;
 import com.example.chatapi.service.IContactService;
 import com.example.chatapi.service.IOnlineOfflineService;
+import com.example.chatapi.service.IUserService;
 import com.example.chatapi.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,24 +15,23 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @Slf4j
 public class ContactService implements IContactService {
 
-    private final UserRepository userRepository;
+    private final IUserService userService;
     private final SecurityUtils securityUtils;
     private final IOnlineOfflineService onlineOfflineService;
     private final SimpMessageSendingOperations simpMessageSendingOperations;
 
     @Autowired
-    public ContactService(UserRepository userRepository,
+    public ContactService(UserService userService,
                           SecurityUtils securityUtils,
                           OnlineOfflineService onlineOfflineService,
                           SimpMessageSendingOperations simpMessageSendingOperations) {
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.securityUtils = securityUtils;
         this.onlineOfflineService = onlineOfflineService;
         this.simpMessageSendingOperations = simpMessageSendingOperations;
@@ -41,7 +41,7 @@ public class ContactService implements IContactService {
     public List<UserConnection> getAllContacts() {
         UserDetailsImpl userDetails = securityUtils.getUser();
         String username = userDetails.getUsername();
-        List<User> users = userRepository.findAll();
+        List<User> users = userService.getAll();
         User thisUser =
                 users.stream()
                         .filter(user -> user.getUsername().equals(username))
@@ -64,36 +64,7 @@ public class ContactService implements IContactService {
     public List<UserConnection> getUserFriends() {
         UserDetailsImpl userDetails = securityUtils.getUser();
         String username = userDetails.getUsername();
-        User thisUser = userRepository.findByUsername(username).orElseThrow(EntityException::new);
-
-        return thisUser.getFriends().stream()
-                .map(friend ->
-                        UserConnection.builder()
-                                .connectionId(friend.getId())
-                                .connectionUsername(friend.getUsername())
-                                .convId(getConvId(friend, thisUser))
-                                .unSeen(0)
-                                .isOnline(onlineOfflineService.isUserOnline(friend.getId()))
-                                .build())
-                .toList();
-    }
-
-    @Override
-    public List<UserConnection> addFriend(String userId) {
-        UserDetailsImpl userDetails = securityUtils.getUser();
-        String username = userDetails.getUsername();
-
-        User thisUser = userRepository.findByUsername(username).orElseThrow(EntityException::new);
-
-        User friendToAdd = userRepository.findById(UUID.fromString(userId)).orElseThrow(EntityException::new);
-
-        if (thisUser.getFriends().contains(friendToAdd)) {
-            throw new RuntimeException("This user is already in your friends list.");
-        }
-
-        thisUser.getFriends().add(friendToAdd);
-
-        userRepository.save(thisUser);
+        User thisUser = userService.getUserByUsername(username).orElseThrow(EntityException::new);
 
         return thisUser.getFriends().stream()
                 .map(friend ->

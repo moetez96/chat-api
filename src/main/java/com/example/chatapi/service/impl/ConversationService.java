@@ -12,6 +12,7 @@ import com.example.chatapi.service.IConversationService;
 import com.example.chatapi.service.IOnlineOfflineService;
 import com.example.chatapi.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -27,6 +28,7 @@ public class ConversationService implements IConversationService {
     private final IOnlineOfflineService onlineOfflineService;
     private final SimpMessageSendingOperations simpMessageSendingOperations;
 
+    @Autowired
     public ConversationService(
             SecurityUtils securityUtils,
             ChatMessageMapper chatMessageMapper,

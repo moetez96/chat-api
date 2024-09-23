@@ -10,7 +10,4 @@ public interface IContactService {
 
     List<UserConnection> getUserFriends();
 
-    List<UserConnection> addFriend(String userId);
-
-
 }

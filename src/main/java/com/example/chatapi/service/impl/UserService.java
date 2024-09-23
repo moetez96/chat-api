@@ -21,6 +21,10 @@ public class UserService implements IUserService {
         this.userRepository  = userRepository;
     }
 
+    public List<User> getAll() {
+        return userRepository.findAll();
+    }
+
     public void addUser(User user) {
         userRepository.save(user);
     }
@@ -43,5 +47,9 @@ public class UserService implements IUserService {
 
     public List<User> getAllByIds(List<UUID> usersIds) {
         return userRepository.findAllById(usersIds);
+    }
+
+    public boolean areAlreadyFriends(UUID userId, UUID friendId) {
+        return userRepository.areUsersFriends(userId, friendId);
     }
 }

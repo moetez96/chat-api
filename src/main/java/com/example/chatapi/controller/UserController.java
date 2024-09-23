@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/users")
 public class UserController {
     private final OnlineOfflineService onlineOfflineService;

@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin("*")
 @RequestMapping(("/api/contact"))
 public class ContactController {
     private final IContactService contactService;
@@ -23,7 +22,6 @@ public class ContactController {
 
     @GetMapping("/getAllContacts")
     public List<UserConnection> getAllContacts() {
-        System.out.println("hello");
         return contactService.getAllContacts();
     }
 
@@ -32,8 +30,4 @@ public class ContactController {
         return contactService.getUserFriends();
     }
 
-    @GetMapping("/addFriend/{userId}")
-    public List<UserConnection> addFriend(@PathVariable("userId") String userId) {
-        return contactService.addFriend(userId);
-    }
 }

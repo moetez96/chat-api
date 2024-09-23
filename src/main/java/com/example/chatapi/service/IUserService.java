@@ -15,4 +15,8 @@ public interface IUserService {
     List<User> getAllByUsernames(Set<String> usernames);
 
     List<User> getAllByIds(List<UUID> fromUsersIds);
+
+    boolean areAlreadyFriends(UUID userId, UUID friendId);
+
+    List<User> getAll();
 }
