@@ -22,9 +22,14 @@ public class FriendRequestController {
         this.friendRequestService = friendRequestService;
     }
 
-    @GetMapping("/getFriendsRequests")
-    public List<FriendRequestResponse> getFriendsRequests() {
-        return friendRequestService.getFriendsRequests();
+    @GetMapping("/getSentRequests")
+    public List<FriendRequestResponse> getSentRequests() {
+        return friendRequestService.getSentRequests();
+    }
+
+    @GetMapping("/getReceivedRequests")
+    public List<FriendRequestResponse> getReceivedRequests() {
+        return friendRequestService.getReceivedRequests();
     }
 
     @PostMapping("/addFriendRequest/{friendId}")

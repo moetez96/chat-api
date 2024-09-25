@@ -17,8 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,11 +28,8 @@ import java.util.UUID;
 public class FriendRequestService implements IFriendRequestService {
 
     private final SecurityUtils securityUtils;
-
     private final IUserService userService;
-
     private final FriendRequestResponseMapper friendRequestResponseMapper;
-
     private final IOnlineOfflineService onlineOfflineService;
     private final SimpMessageSendingOperations simpMessageSendingOperations;
     private final FriendRequestRepository friendRequestRepository;
@@ -41,7 +40,7 @@ public class FriendRequestService implements IFriendRequestService {
                                 FriendRequestResponseMapper friendRequestResponseMapper,
                                 IOnlineOfflineService onlineOfflineService,
                                 SimpMessageSendingOperations simpMessageSendingOperations,
-                                UserService userService) {
+                                IUserService userService) {
         this.friendRequestRepository = friendRequestRepository;
         this.securityUtils = securityUtils;
         this.friendRequestResponseMapper = friendRequestResponseMapper;
@@ -50,24 +49,21 @@ public class FriendRequestService implements IFriendRequestService {
         this.userService = userService;
     }
 
-    public List<FriendRequest> getUserRequests() {
-        UserDetailsImpl userDetails = securityUtils.getUser();
-        UUID currentUserId = userDetails.getId();
-
-        return friendRequestRepository.findFriendRequestBySenderId(currentUserId).stream().toList();
-
-    }
-
-    public List<FriendRequestResponse> getFriendsRequests() {
-        UserDetailsImpl userDetails = securityUtils.getUser();
-        UUID currentUserId = userDetails.getId();
-        List<FriendRequest> friendRequests = friendRequestRepository.findFriendRequestByReceiverId(currentUserId).stream().toList();
+    public List<FriendRequestResponse> getSentRequests() {
+        UUID currentUserId = securityUtils.getUser().getId();
+        List<FriendRequest> friendRequests = friendRequestRepository.findFriendRequestBySenderId(currentUserId);
         return friendRequestResponseMapper.toFriendRequestResponses(friendRequests);
     }
 
+    public List<FriendRequestResponse> getReceivedRequests() {
+        UUID currentUserId = securityUtils.getUser().getId();
+        List<FriendRequest> friendRequests = friendRequestRepository.findFriendRequestByReceiverId(currentUserId);
+        return friendRequestResponseMapper.toFriendRequestResponses(friendRequests);
+    }
+
+    @Transactional
     public FriendRequestResponse addFriendRequest(UUID friendId) {
-        UserDetailsImpl userDetails = securityUtils.getUser();
-        UUID currentUserId = userDetails.getId();
+        UUID currentUserId = securityUtils.getUser().getId();
 
         User user = userService.getUserById(currentUserId)
                 .orElseThrow(() -> new EntityException("The current user doesn't exist."));
@@ -82,18 +78,18 @@ public class FriendRequestService implements IFriendRequestService {
             throw new EntityException("You have already sent a friend request to this user.");
         }
 
-        FriendRequest.FriendRequestBuilder friendRequestBuilder = FriendRequest.builder();
-        FriendRequest friendRequest = friendRequestBuilder
-                .sender(user).receiver(friend).build();
+        FriendRequest friendRequest = FriendRequest.builder()
+                .sender(user)
+                .receiver(friend)
+                .build();
 
         log.info("User {} is sending a friend request to {}", user.getUsername(), friend.getUsername());
         friendRequest = friendRequestRepository.save(friendRequest);
-        log.info("Friend request saved: {} -> {}", user.getUsername(), friend.getUsername());
+        log.info("Friend request saved: {} -> {}. Request ID: {}", user.getUsername(), friend.getUsername(), friendRequest.getId());
 
         boolean isTargetOnline = onlineOfflineService.isUserOnline(friend.getId());
         if (isTargetOnline) {
-            ChatMessage.ChatMessageBuilder chatMessageBuilder = ChatMessage.builder();
-            ChatMessage chatMessage = chatMessageBuilder
+            ChatMessage chatMessage = ChatMessage.builder()
                     .senderId(currentUserId)
                     .senderUsername(user.getUsername())
                     .receiverId(friend.getId())
@@ -111,65 +107,68 @@ public class FriendRequestService implements IFriendRequestService {
         return friendRequestResponseMapper.toFriendRequestResponse(friendRequest);
     }
 
+    @Transactional
     public void acceptFriendRequest(UUID senderId) {
-        UserDetailsImpl userDetails = securityUtils.getUser();
-        UUID currentUserId = userDetails.getId();
+        UUID currentUserId = securityUtils.getUser().getId();
 
         User user = userService.getUserById(currentUserId)
                 .orElseThrow(() -> new EntityException("The current user doesn't exist."));
         User sender = userService.getUserById(senderId)
                 .orElseThrow(() -> new EntityException("The requested user does not exist."));
 
-        FriendRequest friendRequest = friendRequestRepository.findBySenderIdAndReceiverId(sender.getId(), user.getId());
+        Optional<FriendRequest> friendRequest = Optional.ofNullable(friendRequestRepository.findBySenderIdAndReceiverId(sender.getId(), user.getId()));
 
-        if (friendRequest == null) {
+        if (friendRequest.isEmpty()) {
             throw new EntityException("No friend request found between these users.");
         }
 
         if (userService.areAlreadyFriends(user.getId(), sender.getId())) {
-            friendRequestRepository.delete(friendRequest);
+            friendRequestRepository.delete(friendRequest.get());
             throw new EntityException("This user is already in your friends list.");
         }
 
         user.getFriends().add(sender);
-        friendRequestRepository.delete(friendRequest);
+        sender.getFriends().add(user);
+
         userService.addUser(user);
+        userService.addUser(sender);
+
+        friendRequestRepository.delete(friendRequest.get());
     }
 
+    @Transactional
     public void declineFriendRequest(UUID senderId) {
-        UserDetailsImpl userDetails = securityUtils.getUser();
-        UUID currentUserId = userDetails.getId();
+        UUID currentUserId = securityUtils.getUser().getId();
 
         User user = userService.getUserById(currentUserId)
                 .orElseThrow(() -> new EntityException("The current user doesn't exist."));
         User sender = userService.getUserById(senderId)
                 .orElseThrow(() -> new EntityException("The requested user does not exist."));
 
-        FriendRequest friendRequest = friendRequestRepository.findBySenderIdAndReceiverId(sender.getId(), user.getId());
+        Optional<FriendRequest> friendRequest = Optional.ofNullable(friendRequestRepository.findBySenderIdAndReceiverId(sender.getId(), user.getId()));
 
-        if (friendRequest == null) {
+        if (friendRequest.isEmpty()) {
             throw new EntityException("No friend request found between these users.");
         }
 
-        friendRequestRepository.delete(friendRequest);
+        friendRequestRepository.delete(friendRequest.get());
     }
 
+    @Transactional
     public void cancelFriendRequest(UUID friendId) {
-        UserDetailsImpl userDetails = securityUtils.getUser();
-        UUID currentUserId = userDetails.getId();
+        UUID currentUserId = securityUtils.getUser().getId();
 
         User user = userService.getUserById(currentUserId)
                 .orElseThrow(() -> new EntityException("The current user doesn't exist."));
         User friend = userService.getUserById(friendId)
                 .orElseThrow(() -> new EntityException("The requested user does not exist."));
 
-        FriendRequest friendRequest = friendRequestRepository.findBySenderIdAndReceiverId(friend.getId(), user.getId());
+        Optional<FriendRequest> friendRequest = Optional.ofNullable(friendRequestRepository.findBySenderIdAndReceiverId(user.getId(), friend.getId()));
 
-        if (friendRequest == null) {
+        if (friendRequest.isEmpty()) {
             throw new EntityException("No friend request found between these users.");
         }
 
-        friendRequestRepository.delete(friendRequest);
+        friendRequestRepository.delete(friendRequest.get());
     }
-
 }

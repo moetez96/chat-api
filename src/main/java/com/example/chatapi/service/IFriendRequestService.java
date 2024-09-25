@@ -10,7 +10,10 @@ import java.util.UUID;
 
 public interface IFriendRequestService {
 
-    List<FriendRequestResponse> getFriendsRequests();
+    List<FriendRequestResponse> getSentRequests();
+
+    List<FriendRequestResponse> getReceivedRequests();
+
 
     FriendRequestResponse addFriendRequest(UUID friendId);
 
