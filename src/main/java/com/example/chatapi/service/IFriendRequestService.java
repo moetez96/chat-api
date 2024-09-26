@@ -1,11 +1,8 @@
 package com.example.chatapi.service;
 
-import com.example.chatapi.entity.FriendRequest;
-import com.example.chatapi.entity.User;
-import com.example.chatapi.model.FriendRequestResponse;
+import com.example.chatapi.dto.FriendRequestResponse;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public interface IFriendRequestService {

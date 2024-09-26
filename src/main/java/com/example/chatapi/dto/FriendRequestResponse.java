@@ -1,5 +1,6 @@
-package com.example.chatapi.model;
+package com.example.chatapi.dto;
 
+import com.example.chatapi.model.UserConnection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

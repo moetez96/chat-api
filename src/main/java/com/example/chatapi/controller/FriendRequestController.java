@@ -1,6 +1,7 @@
 package com.example.chatapi.controller;
 
-import com.example.chatapi.model.FriendRequestResponse;
+import com.example.chatapi.dto.ApiResponse;
+import com.example.chatapi.dto.FriendRequestResponse;
 import com.example.chatapi.service.IFriendRequestService;
 import com.example.chatapi.service.impl.FriendRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,47 +24,62 @@ public class FriendRequestController {
     }
 
     @GetMapping("/getSentRequests")
-    public List<FriendRequestResponse> getSentRequests() {
-        return friendRequestService.getSentRequests();
+    public ResponseEntity<ApiResponse<List<FriendRequestResponse>>> getSentRequests() {
+        List<FriendRequestResponse> sentRequests = friendRequestService.getSentRequests();
+        return ResponseEntity.ok(new ApiResponse<>("success", "Sent requests fetched successfully", sentRequests));
     }
 
     @GetMapping("/getReceivedRequests")
-    public List<FriendRequestResponse> getReceivedRequests() {
-        return friendRequestService.getReceivedRequests();
+    public ResponseEntity<ApiResponse<List<FriendRequestResponse>>> getReceivedRequests() {
+        List<FriendRequestResponse> receivedRequests = friendRequestService.getReceivedRequests();
+        return ResponseEntity.ok(new ApiResponse<>("success", "Received requests fetched successfully", receivedRequests));
     }
 
     @PostMapping("/addFriendRequest/{friendId}")
-    public FriendRequestResponse addFriendRequest(@PathVariable String friendId) {
-        return friendRequestService.addFriendRequest(UUID.fromString(friendId));
+    public ResponseEntity<ApiResponse<FriendRequestResponse>> addFriendRequest(@PathVariable String friendId) {
+        try {
+            FriendRequestResponse response = friendRequestService.addFriendRequest(UUID.fromString(friendId));
+            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("success", "Friend request sent", response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("error", "Invalid UUID format", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
+        }
     }
 
     @PutMapping("/acceptFriendRequest/{senderId}")
-    public ResponseEntity<?> acceptFriendRequest(@PathVariable String senderId) {
+    public ResponseEntity<ApiResponse<?>> acceptFriendRequest(@PathVariable String senderId) {
         try {
             friendRequestService.acceptFriendRequest(UUID.fromString(senderId));
-            return ResponseEntity.ok("Request accepted successfully");
+            return ResponseEntity.ok(new ApiResponse<>("success", "Request accepted successfully", null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("error", "Invalid UUID format", null));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
         }
     }
 
     @PutMapping("/declineFriendRequest/{senderId}")
-    public ResponseEntity<?> declineFriendRequest(@PathVariable String senderId) {
+    public ResponseEntity<ApiResponse<?>> declineFriendRequest(@PathVariable String senderId) {
         try {
             friendRequestService.declineFriendRequest(UUID.fromString(senderId));
-            return ResponseEntity.ok("Request declined successfully");
+            return ResponseEntity.ok(new ApiResponse<>("success", "Request declined successfully", null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("error", "Invalid UUID format", null));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
         }
     }
 
     @DeleteMapping("/cancelFriendRequest/{friendId}")
-    public ResponseEntity<?> cancelFriendRequest(@PathVariable String friendId) {
+    public ResponseEntity<ApiResponse<?>> cancelFriendRequest(@PathVariable String friendId) {
         try {
             friendRequestService.cancelFriendRequest(UUID.fromString(friendId));
-            return ResponseEntity.ok("Request canceled successfully");
+            return ResponseEntity.ok(new ApiResponse<>("success", "Request canceled successfully", null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("error", "Invalid UUID format", null));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
         }
     }
 }

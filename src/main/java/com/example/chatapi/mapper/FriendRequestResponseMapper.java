@@ -1,12 +1,11 @@
 package com.example.chatapi.mapper;
 
 import com.example.chatapi.entity.FriendRequest;
-import com.example.chatapi.model.FriendRequestResponse;
+import com.example.chatapi.dto.FriendRequestResponse;
 import com.example.chatapi.model.UserConnection;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class FriendRequestResponseMapper {

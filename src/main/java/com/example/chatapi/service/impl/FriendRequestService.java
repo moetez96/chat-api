@@ -1,12 +1,11 @@
 package com.example.chatapi.service.impl;
 
-import com.example.chatapi.config.UserDetailsImpl;
 import com.example.chatapi.entity.FriendRequest;
 import com.example.chatapi.entity.User;
 import com.example.chatapi.exception.EntityException;
 import com.example.chatapi.mapper.FriendRequestResponseMapper;
 import com.example.chatapi.model.ChatMessage;
-import com.example.chatapi.model.FriendRequestResponse;
+import com.example.chatapi.dto.FriendRequestResponse;
 import com.example.chatapi.model.MessageType;
 import com.example.chatapi.repository.FriendRequestRepository;
 import com.example.chatapi.service.IFriendRequestService;
