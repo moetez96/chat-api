@@ -1,5 +1,6 @@
 package com.example.chatapi.entity;
 
+import com.example.chatapi.model.MessageDeliveryStatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -22,16 +23,19 @@ public class FriendRequest {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender", nullable = false)
+    @JoinColumn(name = "sender", columnDefinition = "uuid", nullable = false)
     private User sender;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver", nullable = false)
+    @JoinColumn(name = "receiver", columnDefinition = "uuid", nullable = false)
     private User receiver;
 
     @Column(name = "created_at")
     @CreatedDate
     private Timestamp createdAt;
+
+    @Column(name = "delivery_status", length = -1)
+    private String deliveryStatus;
 
     @PrePersist
     protected void onCreate() {

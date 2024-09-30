@@ -6,6 +6,7 @@ import com.example.chatapi.exception.EntityException;
 import com.example.chatapi.mapper.FriendRequestResponseMapper;
 import com.example.chatapi.model.ChatMessage;
 import com.example.chatapi.dto.FriendRequestResponse;
+import com.example.chatapi.model.MessageDeliveryStatusEnum;
 import com.example.chatapi.model.MessageType;
 import com.example.chatapi.repository.FriendRequestRepository;
 import com.example.chatapi.service.IFriendRequestService;
@@ -18,6 +19,8 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,6 +63,21 @@ public class FriendRequestService implements IFriendRequestService {
         return friendRequestResponseMapper.toFriendRequestResponses(friendRequests);
     }
 
+    public List<FriendRequestResponse> getReceivedUnseenRequests() {
+        UUID currentUserId = securityUtils.getUser().getId();
+        List<FriendRequest> friendRequests = friendRequestRepository.findFriendRequestUnseen(currentUserId);
+        return friendRequestResponseMapper.toFriendRequestResponses(friendRequests);
+    }
+
+    public void seeFriendsRequests() {
+        UUID currentUserId = securityUtils.getUser().getId();
+        List<FriendRequest> friendRequests = friendRequestRepository.findFriendRequestUnseen(currentUserId);
+        friendRequests.forEach(
+                request -> request.setDeliveryStatus(MessageDeliveryStatusEnum.SEEN.toString()));
+        List<FriendRequest> saved = friendRequestRepository.saveAll(friendRequests);
+        friendRequestResponseMapper.toFriendRequestResponses(saved);
+    }
+
     @Transactional
     public FriendRequestResponse addFriendRequest(UUID friendId) {
         UUID currentUserId = securityUtils.getUser().getId();
@@ -77,32 +95,40 @@ public class FriendRequestService implements IFriendRequestService {
             throw new EntityException("You have already sent a friend request to this user.");
         }
 
-        FriendRequest friendRequest = FriendRequest.builder()
-                .sender(user)
-                .receiver(friend)
-                .build();
-
-        log.info("User {} is sending a friend request to {}", user.getUsername(), friend.getUsername());
-        friendRequest = friendRequestRepository.save(friendRequest);
-        log.info("Friend request saved: {} -> {}. Request ID: {}", user.getUsername(), friend.getUsername(), friendRequest.getId());
+        FriendRequest friendRequest;
 
         boolean isTargetOnline = onlineOfflineService.isUserOnline(friend.getId());
         if (isTargetOnline) {
+
             ChatMessage chatMessage = ChatMessage.builder()
                     .senderId(currentUserId)
                     .senderUsername(user.getUsername())
                     .receiverId(friend.getId())
                     .receiverUsername(friend.getUsername())
                     .messageType(MessageType.FRIEND_REQUEST)
-                    .time(friendRequest.getCreatedAt())
+                    .time(Timestamp.from(Instant.now()))
                     .build();
 
-            log.info("{} is online. Request notification is sent to {}", friend.getUsername(), chatMessage.getReceiverUsername());
+            friendRequest = FriendRequest.builder()
+                    .sender(user)
+                    .receiver(friend)
+                    .deliveryStatus(MessageDeliveryStatusEnum.DELIVERED.toString())
+                    .build();
+
+            log.info("{} is online. FRIEND_REQUEST notification is sent to {}", friend.getUsername(), chatMessage.getReceiverUsername());
             simpMessageSendingOperations.convertAndSend("/topic/" + friend.getId(), chatMessage);
         } else {
-            log.info("{} is offline. Friend request will be pending.", friend.getUsername());
+
+            friendRequest = FriendRequest.builder()
+                    .sender(user)
+                    .receiver(friend)
+                    .deliveryStatus(MessageDeliveryStatusEnum.NOT_DELIVERED.toString())
+                    .build();
+
+            log.info("{} is offline. FRIEND_REQUEST will be pending.", friend.getUsername());
         }
 
+        friendRequest = friendRequestRepository.save(friendRequest);
         return friendRequestResponseMapper.toFriendRequestResponse(friendRequest);
     }
 
@@ -133,6 +159,23 @@ public class FriendRequestService implements IFriendRequestService {
         userService.addUser(sender);
 
         friendRequestRepository.delete(friendRequest.get());
+
+        boolean isTargetOnline = onlineOfflineService.isUserOnline(sender.getId());
+        if (isTargetOnline) {
+            ChatMessage chatMessage = ChatMessage.builder()
+                    .senderId(currentUserId)
+                    .senderUsername(user.getUsername())
+                    .receiverId(sender.getId())
+                    .receiverUsername(sender.getUsername())
+                    .messageType(MessageType.FRIEND_REQUEST_ACCEPTED)
+                    .time(friendRequest.get().getCreatedAt())
+                    .build();
+
+            log.info("{} is online. FRIEND_REQUEST_ACCEPTED notification is sent to {}", sender.getUsername(), chatMessage.getReceiverUsername());
+            simpMessageSendingOperations.convertAndSend("/topic/" + sender.getId(), chatMessage);
+        } else {
+            log.info("{} is offline. FRIEND_REQUEST_ACCEPTED will be pending.", sender.getUsername());
+        }
     }
 
     @Transactional
@@ -151,6 +194,23 @@ public class FriendRequestService implements IFriendRequestService {
         }
 
         friendRequestRepository.delete(friendRequest.get());
+
+        boolean isTargetOnline = onlineOfflineService.isUserOnline(sender.getId());
+        if (isTargetOnline) {
+            ChatMessage chatMessage = ChatMessage.builder()
+                    .senderId(currentUserId)
+                    .senderUsername(user.getUsername())
+                    .receiverId(sender.getId())
+                    .receiverUsername(sender.getUsername())
+                    .messageType(MessageType.FRIEND_REQUEST_DECLINED)
+                    .time(friendRequest.get().getCreatedAt())
+                    .build();
+
+            log.info("{} is online. FRIEND_REQUEST_DECLINED notification is sent to {}", sender.getUsername(), chatMessage.getReceiverUsername());
+            simpMessageSendingOperations.convertAndSend("/topic/" + sender.getId(), chatMessage);
+        } else {
+            log.info("{} is offline. FRIEND_REQUEST_DECLINED will be pending.", sender.getUsername());
+        }
     }
 
     @Transactional
@@ -169,5 +229,22 @@ public class FriendRequestService implements IFriendRequestService {
         }
 
         friendRequestRepository.delete(friendRequest.get());
+
+        boolean isTargetOnline = onlineOfflineService.isUserOnline(friend.getId());
+        if (isTargetOnline) {
+            ChatMessage chatMessage = ChatMessage.builder()
+                    .senderId(currentUserId)
+                    .senderUsername(user.getUsername())
+                    .receiverId(friend.getId())
+                    .receiverUsername(friend.getUsername())
+                    .messageType(MessageType.FRIEND_REQUEST_CANCELED)
+                    .time(friendRequest.get().getCreatedAt())
+                    .build();
+
+            log.info("{} is online. FRIEND_REQUEST_CANCELED notification is sent to {}", friend.getUsername(), chatMessage.getReceiverUsername());
+            simpMessageSendingOperations.convertAndSend("/topic/" + friend.getId(), chatMessage);
+        } else {
+            log.info("{} is offline. FRIEND_REQUEST_CANCELED will be pending.", friend.getUsername());
+        }
     }
 }

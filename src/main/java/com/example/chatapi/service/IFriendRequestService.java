@@ -20,4 +20,7 @@ public interface IFriendRequestService {
 
     void cancelFriendRequest(UUID friendId);
 
+    List<FriendRequestResponse> getReceivedUnseenRequests();
+
+    void seeFriendsRequests();
 }

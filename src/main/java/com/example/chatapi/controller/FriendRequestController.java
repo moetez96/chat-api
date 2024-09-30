@@ -25,14 +25,42 @@ public class FriendRequestController {
 
     @GetMapping("/getSentRequests")
     public ResponseEntity<ApiResponse<List<FriendRequestResponse>>> getSentRequests() {
-        List<FriendRequestResponse> sentRequests = friendRequestService.getSentRequests();
-        return ResponseEntity.ok(new ApiResponse<>("success", "Sent requests fetched successfully", sentRequests));
+        try {
+            List<FriendRequestResponse> sentRequests = friendRequestService.getSentRequests();
+            return ResponseEntity.ok(new ApiResponse<>("success", "Sent requests fetched successfully", sentRequests));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
+        }
     }
 
     @GetMapping("/getReceivedRequests")
     public ResponseEntity<ApiResponse<List<FriendRequestResponse>>> getReceivedRequests() {
-        List<FriendRequestResponse> receivedRequests = friendRequestService.getReceivedRequests();
-        return ResponseEntity.ok(new ApiResponse<>("success", "Received requests fetched successfully", receivedRequests));
+        try {
+            List<FriendRequestResponse> receivedRequests = friendRequestService.getReceivedRequests();
+            return ResponseEntity.ok(new ApiResponse<>("success", "Received requests fetched successfully", receivedRequests));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/getReceivedUnseenRequests")
+    public ResponseEntity<ApiResponse<List<FriendRequestResponse>>> getReceivedUnseenRequests() {
+        try {
+            List<FriendRequestResponse> sentRequests = friendRequestService.getReceivedUnseenRequests();
+            return ResponseEntity.ok(new ApiResponse<>("success", "Sent requests fetched successfully", sentRequests));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/seeFriendsRequests")
+    public ResponseEntity<ApiResponse<?>> seeFriendsRequests() {
+        try {
+            friendRequestService.seeFriendsRequests();
+            return ResponseEntity.ok(new ApiResponse<>("success", "Requests seen successfully", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
+        }
     }
 
     @PostMapping("/addFriendRequest/{friendId}")
