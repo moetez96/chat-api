@@ -53,7 +53,7 @@ public class FriendRequestController {
         }
     }
 
-    @GetMapping("/seeFriendsRequests")
+    @PutMapping("/seeFriendsRequests")
     public ResponseEntity<ApiResponse<?>> seeFriendsRequests() {
         try {
             friendRequestService.seeFriendsRequests();

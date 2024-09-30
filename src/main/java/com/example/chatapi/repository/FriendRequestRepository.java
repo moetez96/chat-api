@@ -15,7 +15,7 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
     List<FriendRequest> findFriendRequestBySenderId(UUID sender_id);
     List<FriendRequest> findFriendRequestByReceiverId(UUID receiver_id);
 
-    @Query(value = "SELECT * FROM FriendRequest WHERE receiver = :receiver_id AND delivery_status != 'SEEN' ORDER BY created_at DESC", nativeQuery = true)
+    @Query(value = "SELECT * FROM friend_requests WHERE receiver = :receiver_id AND delivery_status != 'SEEN' ORDER BY created_at DESC", nativeQuery = true)
     List<FriendRequest> findFriendRequestUnseen(UUID receiver_id);
     FriendRequest findBySenderIdAndReceiverId(UUID sender_id, UUID receiver_id);
     boolean existsBySenderIdAndReceiverId(UUID sender_id, UUID receiver_id);
