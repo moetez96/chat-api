@@ -19,4 +19,6 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
     List<FriendRequest> findFriendRequestUnseen(UUID receiver_id);
     FriendRequest findBySenderIdAndReceiverId(UUID sender_id, UUID receiver_id);
     boolean existsBySenderIdAndReceiverId(UUID sender_id, UUID receiver_id);
+
+    FriendRequest findFriendRequestBySenderIdAndReceiverId(UUID senderId, UUID receiverId);
 }

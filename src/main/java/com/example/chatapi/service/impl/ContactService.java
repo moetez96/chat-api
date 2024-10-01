@@ -37,7 +37,6 @@ public class ContactService implements IContactService {
         this.simpMessageSendingOperations = simpMessageSendingOperations;
     }
 
-    @Override
     public List<UserConnection> getAllContacts() {
         UserDetailsImpl userDetails = securityUtils.getUser();
         String username = userDetails.getUsername();
@@ -63,8 +62,8 @@ public class ContactService implements IContactService {
 
     public List<UserConnection> getUserFriends() {
         UserDetailsImpl userDetails = securityUtils.getUser();
-        String username = userDetails.getUsername();
-        User thisUser = userService.getUserByUsername(username).orElseThrow(EntityException::new);
+        String userName = userDetails.getUsername();
+        User thisUser = userService.getUserByUsername(userName).orElseThrow(EntityException::new);
 
         return thisUser.getFriends().stream()
                 .map(friend ->
@@ -76,6 +75,28 @@ public class ContactService implements IContactService {
                                 .isOnline(onlineOfflineService.isUserOnline(friend.getId()))
                                 .build())
                 .toList();
+    }
+
+
+    public UserConnection getFriendById(UUID friendId) {
+        UserDetailsImpl userDetails = securityUtils.getUser();
+        String userName = userDetails.getUsername();
+
+        User thisUser = userService.getUserByUsername(userName).orElseThrow(EntityException::new);
+
+        User friend = thisUser.getFriends()
+                .stream()
+                .filter(f -> f.getId().equals(friendId))
+                .findFirst()
+                .orElseThrow(() -> new EntityException("Friend with id " + friendId + " not found"));
+
+        return UserConnection.builder()
+                .connectionId(friend.getId())
+                .connectionUsername(friend.getUsername())
+                .convId(getConvId(friend, thisUser))
+                .unSeen(0)
+                .isOnline(onlineOfflineService.isUserOnline(friend.getId()))
+                .build();
     }
 
     public static String getConvId(User user1, User user2) {

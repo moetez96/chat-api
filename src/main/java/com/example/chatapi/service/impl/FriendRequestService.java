@@ -78,6 +78,12 @@ public class FriendRequestService implements IFriendRequestService {
         friendRequestResponseMapper.toFriendRequestResponses(saved);
     }
 
+    @Override
+    public FriendRequestResponse getReceivedRequestIds(UUID senderId, UUID receiverId) {
+        FriendRequest friendRequest = friendRequestRepository.findFriendRequestBySenderIdAndReceiverId(senderId, receiverId);
+        return friendRequestResponseMapper.toFriendRequestResponse(friendRequest);
+    }
+
     @Transactional
     public FriendRequestResponse addFriendRequest(UUID friendId) {
         UUID currentUserId = securityUtils.getUser().getId();
@@ -160,22 +166,25 @@ public class FriendRequestService implements IFriendRequestService {
 
         friendRequestRepository.delete(friendRequest.get());
 
+        ChatMessage chatMessage = ChatMessage.builder()
+                .senderId(currentUserId)
+                .senderUsername(user.getUsername())
+                .receiverId(sender.getId())
+                .receiverUsername(sender.getUsername())
+                .messageType(MessageType.FRIEND_REQUEST_ACCEPTED)
+                .time(friendRequest.get().getCreatedAt())
+                .build();
+
         boolean isTargetOnline = onlineOfflineService.isUserOnline(sender.getId());
         if (isTargetOnline) {
-            ChatMessage chatMessage = ChatMessage.builder()
-                    .senderId(currentUserId)
-                    .senderUsername(user.getUsername())
-                    .receiverId(sender.getId())
-                    .receiverUsername(sender.getUsername())
-                    .messageType(MessageType.FRIEND_REQUEST_ACCEPTED)
-                    .time(friendRequest.get().getCreatedAt())
-                    .build();
 
             log.info("{} is online. FRIEND_REQUEST_ACCEPTED notification is sent to {}", sender.getUsername(), chatMessage.getReceiverUsername());
             simpMessageSendingOperations.convertAndSend("/topic/" + sender.getId(), chatMessage);
+
         } else {
             log.info("{} is offline. FRIEND_REQUEST_ACCEPTED will be pending.", sender.getUsername());
         }
+        simpMessageSendingOperations.convertAndSend("/topic/" + user.getId(), chatMessage);
     }
 
     @Transactional
@@ -195,22 +204,26 @@ public class FriendRequestService implements IFriendRequestService {
 
         friendRequestRepository.delete(friendRequest.get());
 
+        ChatMessage chatMessage = ChatMessage.builder()
+                .senderId(currentUserId)
+                .senderUsername(user.getUsername())
+                .receiverId(sender.getId())
+                .receiverUsername(sender.getUsername())
+                .messageType(MessageType.FRIEND_REQUEST_DECLINED)
+                .time(friendRequest.get().getCreatedAt())
+                .build();
+
         boolean isTargetOnline = onlineOfflineService.isUserOnline(sender.getId());
         if (isTargetOnline) {
-            ChatMessage chatMessage = ChatMessage.builder()
-                    .senderId(currentUserId)
-                    .senderUsername(user.getUsername())
-                    .receiverId(sender.getId())
-                    .receiverUsername(sender.getUsername())
-                    .messageType(MessageType.FRIEND_REQUEST_DECLINED)
-                    .time(friendRequest.get().getCreatedAt())
-                    .build();
 
             log.info("{} is online. FRIEND_REQUEST_DECLINED notification is sent to {}", sender.getUsername(), chatMessage.getReceiverUsername());
             simpMessageSendingOperations.convertAndSend("/topic/" + sender.getId(), chatMessage);
         } else {
             log.info("{} is offline. FRIEND_REQUEST_DECLINED will be pending.", sender.getUsername());
         }
+
+        simpMessageSendingOperations.convertAndSend("/topic/" + user.getId(), chatMessage);
+
     }
 
     @Transactional

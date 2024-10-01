@@ -33,6 +33,20 @@ public class FriendRequestController {
         }
     }
 
+    @GetMapping("/getReceivedRequestIds/{senderId}/{receiverId}")
+    public ResponseEntity<ApiResponse<FriendRequestResponse>> getReceivedRequestIds(@PathVariable String senderId,
+                                                                                    @PathVariable String receiverId) {
+        try {
+            FriendRequestResponse receiverRequest = friendRequestService.getReceivedRequestIds(UUID.fromString(senderId),
+                    UUID.fromString(receiverId));
+            return ResponseEntity.ok(new ApiResponse<>("success", "Request fetched successfully", receiverRequest));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("error", "Invalid UUID format", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
+        }
+    }
+
     @GetMapping("/getReceivedRequests")
     public ResponseEntity<ApiResponse<List<FriendRequestResponse>>> getReceivedRequests() {
         try {

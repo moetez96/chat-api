@@ -23,4 +23,6 @@ public interface IFriendRequestService {
     List<FriendRequestResponse> getReceivedUnseenRequests();
 
     void seeFriendsRequests();
+
+    FriendRequestResponse getReceivedRequestIds(UUID senderId, UUID receiverId);
 }
