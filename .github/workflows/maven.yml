@@ -35,6 +35,6 @@ jobs:
         image: moetezayari/chat-api-image
         tags: latest
         registry: docker.io
-        dockerfile: DockerFile
+        dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
