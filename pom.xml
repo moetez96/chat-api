@@ -104,6 +104,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+        <finalName>chat-api</finalName>
     </build>
 
 </project>
