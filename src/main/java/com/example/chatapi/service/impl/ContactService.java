@@ -56,6 +56,7 @@ public class ContactService implements IContactService {
                                 .convId(getConvId(user, thisUser))
                                 .unSeen(0)
                                 .isOnline(onlineOfflineService.isUserOnline(user.getId()))
+                                .avatar(user.getColorAvatar())
                                 .build())
                 .toList();
     }
@@ -73,6 +74,7 @@ public class ContactService implements IContactService {
                                 .convId(getConvId(friend, thisUser))
                                 .unSeen(0)
                                 .isOnline(onlineOfflineService.isUserOnline(friend.getId()))
+                                .avatar(friend.getColorAvatar())
                                 .build())
                 .toList();
     }
@@ -96,6 +98,7 @@ public class ContactService implements IContactService {
                 .convId(getConvId(friend, thisUser))
                 .unSeen(0)
                 .isOnline(onlineOfflineService.isUserOnline(friend.getId()))
+                .avatar(friend.getColorAvatar())
                 .build();
     }
 

@@ -17,6 +17,7 @@ public class UserConnection {
     private String connectionUsername;
     private String convId;
     private int unSeen;
+    private String avatar;
 
     @JsonProperty("isOnline")
     private boolean isOnline;

@@ -180,11 +180,9 @@ public class FriendRequestService implements IFriendRequestService {
 
             log.info("{} is online. FRIEND_REQUEST_ACCEPTED notification is sent to {}", sender.getUsername(), chatMessage.getReceiverUsername());
             simpMessageSendingOperations.convertAndSend("/topic/" + sender.getId(), chatMessage);
-
         } else {
             log.info("{} is offline. FRIEND_REQUEST_ACCEPTED will be pending.", sender.getUsername());
         }
-        simpMessageSendingOperations.convertAndSend("/topic/" + user.getId(), chatMessage);
     }
 
     @Transactional

@@ -20,12 +20,14 @@ public class FriendRequestResponseMapper {
                 .sender(
                         UserConnection.builder()
                                 .connectionId(friendRequest.getSender().getId())
-                                .connectionUsername(friendRequest.getSender().getUsername()).build()
+                                .connectionUsername(friendRequest.getSender().getUsername())
+                                .avatar(friendRequest.getSender().getColorAvatar()).build()
                 )
                 .receiver(
                         UserConnection.builder()
-                        .connectionId(friendRequest.getReceiver().getId())
-                        .connectionUsername(friendRequest.getReceiver().getUsername()).build()
+                                .connectionId(friendRequest.getReceiver().getId())
+                                .connectionUsername(friendRequest.getReceiver().getUsername())
+                                .avatar(friendRequest.getSender().getColorAvatar()).build()
                 )
                 .createdAt(friendRequest.getCreatedAt())
                 .build();

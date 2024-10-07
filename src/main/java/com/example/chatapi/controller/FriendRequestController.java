@@ -71,7 +71,7 @@ public class FriendRequestController {
     public ResponseEntity<ApiResponse<?>> seeFriendsRequests() {
         try {
             friendRequestService.seeFriendsRequests();
-            return ResponseEntity.ok(new ApiResponse<>("success", "Requests seen successfully", null));
+            return ResponseEntity.ok(new ApiResponse<>  ("success", "Requests seen successfully", null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>("error", e.getMessage(), null));
         }
