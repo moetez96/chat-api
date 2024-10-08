@@ -22,10 +22,10 @@ import java.util.Date;
 @Component
 public class JWTUtils {
 
-    @Value("${bezkoder.app.jwtSecret:123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123}")
+    @Value("${jwtSecret}")
     private String jwtSecret;
 
-    @Value("${bezkoder.app.jwtExpirationMs:604800000}")
+    @Value("${jwtExpirationMs}")
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication) {
