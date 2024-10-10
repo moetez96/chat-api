@@ -6,9 +6,9 @@ import com.example.chatapi.entity.User;
 import com.example.chatapi.model.*;
 import com.example.chatapi.repository.UserRepository;
 import com.example.chatapi.service.IOnlineOfflineService;
+import com.example.chatapi.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
@@ -23,18 +23,20 @@ public class OnlineOfflineService implements IOnlineOfflineService {
     private final Map<UUID, Set<String>> userSubscribed;
     private final UserRepository userRepository;
     private final SimpMessageSendingOperations simpMessageSendingOperations;
+    private final SecurityUtils securityUtils;
 
     public OnlineOfflineService(
-            UserRepository userRepository, SimpMessageSendingOperations simpMessageSendingOperations) {
+            UserRepository userRepository, SimpMessageSendingOperations simpMessageSendingOperations, SecurityUtils securityUtils) {
         this.onlineUsers = new ConcurrentSkipListSet<>();
         this.userSubscribed = new ConcurrentHashMap<>();
         this.userRepository = userRepository;
         this.simpMessageSendingOperations = simpMessageSendingOperations;
+        this.securityUtils = securityUtils;
     }
 
     public void addOnlineUser(Principal user) {
         if (user == null) return;
-        UserDetailsImpl userDetails = getUserDetails(user);
+        UserDetailsImpl userDetails = securityUtils.getUserDetails(user);
         log.info("{} is online", userDetails.getUsername());
         for (UUID id : onlineUsers) {
             simpMessageSendingOperations.convertAndSend(
@@ -49,7 +51,7 @@ public class OnlineOfflineService implements IOnlineOfflineService {
 
     public void removeOnlineUser(Principal user) {
         if (user != null) {
-            UserDetailsImpl userDetails = getUserDetails(user);
+            UserDetailsImpl userDetails = securityUtils.getUserDetails(user);
             log.info("{} went offline", userDetails.getUsername());
             onlineUsers.remove(userDetails.getId());
             userSubscribed.remove(userDetails.getId());
@@ -68,12 +70,6 @@ public class OnlineOfflineService implements IOnlineOfflineService {
         return onlineUsers.contains(userId);
     }
 
-    private UserDetailsImpl getUserDetails(Principal principal) {
-        UsernamePasswordAuthenticationToken user = (UsernamePasswordAuthenticationToken) principal;
-        Object object = user.getPrincipal();
-        return (UserDetailsImpl) object;
-    }
-
     public List<UserResponse> getOnlineUsers() {
         return userRepository.findAllById(onlineUsers).stream()
                 .map(
@@ -84,7 +80,7 @@ public class OnlineOfflineService implements IOnlineOfflineService {
     }
 
     public void addUserSubscribed(Principal user, String subscribedChannel) {
-        UserDetailsImpl userDetails = getUserDetails(user);
+        UserDetailsImpl userDetails = securityUtils.getUserDetails(user);
         log.info("{} subscribed to {}", userDetails.getUsername(), subscribedChannel);
         Set<String> subscriptions = userSubscribed.getOrDefault(userDetails.getId(), new HashSet<>());
         subscriptions.add(subscribedChannel);
@@ -92,7 +88,7 @@ public class OnlineOfflineService implements IOnlineOfflineService {
     }
 
     public void removeUserSubscribed(Principal user, String subscribedChannel) {
-        UserDetailsImpl userDetails = getUserDetails(user);
+        UserDetailsImpl userDetails = securityUtils.getUserDetails(user);
         log.info("unsubscription! {} unsubscribed {}", userDetails.getUsername(), subscribedChannel);
         Set<String> subscriptions = userSubscribed.getOrDefault(userDetails.getId(), new HashSet<>());
         subscriptions.remove(subscribedChannel);

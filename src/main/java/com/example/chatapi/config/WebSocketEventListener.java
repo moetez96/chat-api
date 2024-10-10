@@ -1,6 +1,7 @@
 package com.example.chatapi.config;
 
-import com.example.chatapi.service.impl.OnlineOfflineService;
+import com.example.chatapi.service.IOnlineOfflineService;
+import com.example.chatapi.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -11,24 +12,45 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
 public class WebSocketEventListener {
 
-    private final OnlineOfflineService onlineOfflineService;
+    private final IOnlineOfflineService onlineOfflineService;
+
+    private final SecurityUtils securityUtils;
 
     private final Map<String, String> simpSessionIdToSubscriptionId;
 
-    public WebSocketEventListener(OnlineOfflineService onlineOfflineService) {
+    private final Map<UUID, Set<String>> activeUserSessions ;
+
+    public WebSocketEventListener(IOnlineOfflineService onlineOfflineService, SecurityUtils securityUtils) {
         this.onlineOfflineService = onlineOfflineService;
+        this.securityUtils = securityUtils;
+
         this.simpSessionIdToSubscriptionId = new ConcurrentHashMap<>();
+        this.activeUserSessions = new ConcurrentHashMap<>();
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
-        onlineOfflineService.removeOnlineUser(event.getUser());
+        String simpSessionId = (String) event.getMessage().getHeaders().get("simpSessionId");
+        UUID userId = securityUtils.getUserDetails(event.getUser()).getId();
+
+        Set<String> userSessions = this.activeUserSessions.get(userId);
+        if (userSessions != null) {
+            userSessions.remove(simpSessionId);
+
+            if (userSessions.isEmpty()) {
+                this.activeUserSessions.remove(userId);
+                onlineOfflineService.removeOnlineUser(event.getUser());
+            }
+        }
+
     }
 
     @EventListener
@@ -39,7 +61,7 @@ public class WebSocketEventListener {
         String simpSessionId =
                 (String) sessionSubscribeEvent.getMessage().getHeaders().get("simpSessionId");
         if (subscribedChannel == null) {
-            log.error("SUBSCRIBED TO NULL?? WAT?!");
+            log.error("SUBSCRIBED TO NULL");
             return;
         }
         simpSessionIdToSubscriptionId.put(simpSessionId, subscribedChannel);
@@ -55,6 +77,16 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleConnectedEvent(SessionConnectedEvent sessionConnectedEvent) {
-        onlineOfflineService.addOnlineUser(sessionConnectedEvent.getUser());
+        String simpSessionId = (String) sessionConnectedEvent.getMessage().getHeaders().get("simpSessionId");
+        UUID userId = securityUtils.getUserDetails(sessionConnectedEvent.getUser()).getId();
+
+        this.activeUserSessions.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet());
+
+        this.activeUserSessions.get(userId).add(simpSessionId);
+
+        if (this.activeUserSessions.get(userId).size() == 1) {
+            onlineOfflineService.addOnlineUser(sessionConnectedEvent.getUser());
+        }
     }
+
 }

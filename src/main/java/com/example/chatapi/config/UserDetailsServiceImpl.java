@@ -1,11 +1,13 @@
 package com.example.chatapi.config;
 
+import java.security.Principal;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.example.chatapi.entity.User;
 import com.example.chatapi.service.IUserService;
 import com.example.chatapi.service.impl.UserService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,4 +46,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .id(user.getId())
                 .build();
     }
+
 }
