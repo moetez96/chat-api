@@ -57,16 +57,25 @@ public class ConversationService implements IConversationService {
                 unseenMessageCountByUser.put(conversation.getFromUser(), values);
             }
             log.info("there are some unseen messages for {}", userDetails.getUsername());
-            unseenMessageCountByUser.forEach(
-                    (user, entities) -> {
-                        result.add(
-                                UnseenMessageCountResponse.builder()
-                                        .count((long) entities.size())
-                                        .fromUser(user)
-                                        .build());
-                        updateMessageDelivery(user, entities, MessageDeliveryStatusEnum.DELIVERED);
-                    });
+
+            for (UUID userId : unseenMessageCountByUser.keySet()) {
+                List<Conversation> conversations = unseenMessageCountByUser.get(userId);
+
+                if (conversations != null && !conversations.isEmpty()) {
+                    Conversation lastConversation = conversations.get(conversations.size() - 1);
+
+                    result.add(
+                            UnseenMessageCountResponse.builder()
+                                    .count((long) conversations.size())
+                                    .fromUser(userId)
+                                    .build());
+
+                    updateMessageDelivery(userId, conversations, MessageDeliveryStatusEnum.DELIVERED);
+                    onlineOfflineService.notifyUsers(lastConversation.getConvId(), conversations, MessageDeliveryStatusEnum.DELIVERED);
+                }
+            }
         }
+
         return result;
     }
 
