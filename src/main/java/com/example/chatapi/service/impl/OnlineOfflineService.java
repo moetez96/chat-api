@@ -119,14 +119,13 @@ public class OnlineOfflineService implements IOnlineOfflineService {
         }
         List<MessageDeliveryStatusUpdate> messageDeliveryStatusUpdates =
                 entities.stream()
-                        .map(
-                                e ->
-                                        MessageDeliveryStatusUpdate.builder()
-                                                .id(e.getId())
-                                                .messageDeliveryStatusEnum(messageDeliveryStatusEnum)
-                                                .content(e.getContent())
-                                                .build())
-                        .toList();
+                        .map(e ->
+                                MessageDeliveryStatusUpdate.builder()
+                                        .id(e.getId())
+                                        .messageDeliveryStatusEnum(messageDeliveryStatusEnum)
+                                        .content(e.getContent())
+                                        .build()).toList();
+
         for (Conversation entity : entities) {
             simpMessageSendingOperations.convertAndSend(
                     "/topic/" + senderId,
@@ -146,9 +145,19 @@ public class OnlineOfflineService implements IOnlineOfflineService {
             List<Conversation> entities,
             MessageDeliveryStatusEnum messageDeliveryStatusEnum) {
 
+        List<MessageDeliveryStatusUpdate>  messageDeliveryStatusUpdates =
+                entities.stream()
+                        .map(e ->
+                                MessageDeliveryStatusUpdate.builder()
+                                        .id(e.getId())
+                                        .messageDeliveryStatusEnum(messageDeliveryStatusEnum)
+                                        .content(e.getContent())
+                                        .build()).toList();
+
         ChatMessage chatMessage = ChatMessage.builder()
                 .messageType(MessageType.MESSAGE_DELIVERY_UPDATE)
-                .messageDeliveryStatusEnum(MessageDeliveryStatusEnum.SEEN)
+                .messageDeliveryStatusUpdates(messageDeliveryStatusUpdates)
+                .messageDeliveryStatusEnum(messageDeliveryStatusEnum)
                 .build();
 
         simpMessageSendingOperations.convertAndSend("/topic/" + convId, chatMessage);

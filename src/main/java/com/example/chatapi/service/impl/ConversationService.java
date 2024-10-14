@@ -71,7 +71,7 @@ public class ConversationService implements IConversationService {
                                     .build());
 
                     updateMessageDelivery(userId, conversations, MessageDeliveryStatusEnum.DELIVERED);
-                    onlineOfflineService.notifyUsers(lastConversation.getConvId(), conversations, MessageDeliveryStatusEnum.DELIVERED);
+                        onlineOfflineService.notifyUsers(lastConversation.getConvId(), conversations, MessageDeliveryStatusEnum.DELIVERED);
                 }
             }
         }

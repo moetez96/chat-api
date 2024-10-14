@@ -26,7 +26,7 @@ public class WebSocketEventListener {
 
     private final Map<String, String> simpSessionIdToSubscriptionId;
 
-    private final Map<UUID, Set<String>> activeUserSessions ;
+    private final Map<UUID, Set<String>> activeUserSessions;
 
     public WebSocketEventListener(IOnlineOfflineService onlineOfflineService, SecurityUtils securityUtils) {
         this.onlineOfflineService = onlineOfflineService;
@@ -39,9 +39,14 @@ public class WebSocketEventListener {
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         String simpSessionId = (String) event.getMessage().getHeaders().get("simpSessionId");
-        UUID userId = securityUtils.getUserDetails(event.getUser()).getId();
 
+        if (simpSessionId == null || event.getUser() == null) {
+            return;
+        }
+
+        UUID userId = securityUtils.getUserDetails(event.getUser()).getId();
         Set<String> userSessions = this.activeUserSessions.get(userId);
+
         if (userSessions != null) {
             userSessions.remove(simpSessionId);
 
@@ -50,8 +55,8 @@ public class WebSocketEventListener {
                 onlineOfflineService.removeOnlineUser(event.getUser());
             }
         }
-
     }
+
 
     @EventListener
     @SendToUser
@@ -78,15 +83,18 @@ public class WebSocketEventListener {
     @EventListener
     public void handleConnectedEvent(SessionConnectedEvent sessionConnectedEvent) {
         String simpSessionId = (String) sessionConnectedEvent.getMessage().getHeaders().get("simpSessionId");
+
+        if (simpSessionId == null || sessionConnectedEvent.getUser() == null) {
+            return;
+        }
+
         UUID userId = securityUtils.getUserDetails(sessionConnectedEvent.getUser()).getId();
 
-        this.activeUserSessions.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet());
+        Set<String> userSessions = this.activeUserSessions.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet());
+        userSessions.add(simpSessionId);
 
-        this.activeUserSessions.get(userId).add(simpSessionId);
-
-        if (this.activeUserSessions.get(userId).size() == 1) {
+        if (userSessions.size() == 1) {
             onlineOfflineService.addOnlineUser(sessionConnectedEvent.getUser());
         }
     }
-
 }
