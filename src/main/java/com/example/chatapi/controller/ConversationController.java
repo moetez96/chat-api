@@ -3,7 +3,6 @@ package com.example.chatapi.controller;
 import com.example.chatapi.dto.ApiResponse;
 import com.example.chatapi.model.ChatMessage;
 import com.example.chatapi.model.UnseenMessageCountResponse;
-import com.example.chatapi.model.UserConnection;
 import com.example.chatapi.service.impl.ConversationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping(("/api/conversation"))

@@ -4,7 +4,6 @@ import com.example.chatapi.config.UserDetailsImpl;
 import com.example.chatapi.entity.User;
 import com.example.chatapi.exception.EntityException;
 import com.example.chatapi.model.UserConnection;
-import com.example.chatapi.repository.UserRepository;
 import com.example.chatapi.service.IContactService;
 import com.example.chatapi.service.IOnlineOfflineService;
 import com.example.chatapi.service.IUserService;

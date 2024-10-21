@@ -1,11 +1,9 @@
 package com.example.chatapi.controller;
 
 import com.example.chatapi.dto.ApiResponse;
-import com.example.chatapi.dto.FriendRequestResponse;
 import com.example.chatapi.model.UserConnection;
 import com.example.chatapi.service.IContactService;
 import com.example.chatapi.service.impl.ContactService;
-import com.example.chatapi.service.impl.ConversationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

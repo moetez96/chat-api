@@ -2,12 +2,9 @@ package com.example.chatapi.service.impl;
 
 import com.example.chatapi.config.UserDetailsImpl;
 import com.example.chatapi.entity.Conversation;
-import com.example.chatapi.entity.User;
-import com.example.chatapi.exception.EntityException;
 import com.example.chatapi.mapper.ChatMessageMapper;
 import com.example.chatapi.model.*;
 import com.example.chatapi.repository.ConversationRepository;
-import com.example.chatapi.repository.UserRepository;
 import com.example.chatapi.service.IConversationService;
 import com.example.chatapi.service.IOnlineOfflineService;
 import com.example.chatapi.utils.SecurityUtils;
@@ -71,7 +68,7 @@ public class ConversationService implements IConversationService {
                                     .build());
 
                     updateMessageDelivery(userId, conversations, MessageDeliveryStatusEnum.DELIVERED);
-                        onlineOfflineService.notifyUsers(lastConversation.getConvId(), conversations, MessageDeliveryStatusEnum.DELIVERED);
+                    onlineOfflineService.notifyUsers(lastConversation.getConvId(), conversations, MessageDeliveryStatusEnum.DELIVERED);
                 }
             }
         }
@@ -94,7 +91,6 @@ public class ConversationService implements IConversationService {
                         .build()
         ).orElse(null);
     }
-
 
     private void updateMessageDelivery(
             UUID user,
